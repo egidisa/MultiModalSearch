@@ -45,7 +45,7 @@ public class FeaturesExtractor {
 				time += System.currentTimeMillis();
 				System.out.println(time);
 				//descs6.add(new ImgDescriptor(descriptors.featDesc6, files[i].getName()));
-				//descs7.add(new ImgDescriptor(descriptors.featDesc7, files[i].getName()));
+				descs7.add(new ImgDescriptor(descriptors.featDesc7, files[i].getName()));
 				writer.println(files[i].getName()+";"+descriptors.classLabel);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -53,6 +53,7 @@ public class FeaturesExtractor {
 		}		
 		//FeaturesStorage.store(descs6, Parameters.STORAGE_FILE_6);
 		//FeaturesStorage.store(descs7, Parameters.STORAGE_FILE_7);
+
 		writer.close();
 	}		
 }

@@ -6,6 +6,8 @@ public class Fields {
 	
 	public static final String IMG = "img";
 	
+	public static final String TAGS = "tags";
+	
 	public static final String BINARY = "binary";
 
 }

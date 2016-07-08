@@ -9,8 +9,11 @@ import java.io.Serializable;
 
 public class ImgDescriptor implements Serializable, Comparable<ImgDescriptor> {
 
-	private static final long serialVersionUID = 1L;
-	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3085876596800708629L;
+
 	private float[] normalizedVector; // image feature
 	
 	private String id; // unique id of the image (usually file name)
