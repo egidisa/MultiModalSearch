@@ -4,8 +4,6 @@
     <servlet-name>MIMServletHome</servlet-name>
     <servlet-class>MIMServletHome</servlet-class>
   </servlet>
-
-
   <servlet-mapping>
     <servlet-name>MIMServletHome</servlet-name>
     <url-pattern>/servlet1</url-pattern>

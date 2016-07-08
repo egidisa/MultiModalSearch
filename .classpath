@@ -6,16 +6,21 @@
 			<attribute name="owner.project.facets" value="java"/>
 		</attributes>
 	</classpathentry>
+
+	<classpathentry kind="lib" path="lib/javacpp.jar"/>
+	<classpathentry kind="lib" path="lib/javacv.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-analyzers-common-5.5.0.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-core-5.5.0.jar"/>
+	<classpathentry kind="lib" path="lib/lucene-queryparser-5.5.0.jar"/>
+	<classpathentry kind="lib" path="lib/opencv-linux-x86_64.jar"/>
+	<classpathentry kind="lib" path="lib/opencv-macosx-x86_64.jar"/>
+	<classpathentry kind="lib" path="lib/opencv-windows-x86_64.jar"/>
+	<classpathentry kind="lib" path="lib/opencv.jar"/>
+	<classpathentry kind="output" path="bin"/>
+
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
-	<classpathentry kind="lib" path="C:/apache-tomcat-7.0.47/lib/lucene-core-5.5.0.jar"/>
-	<classpathentry kind="lib" path="C:/apache-tomcat-7.0.47/lib/opencv.jar"/>
-	<classpathentry kind="lib" path="C:/apache-tomcat-7.0.47/lib/opencv-windows-x86_64.jar"/>
-	<classpathentry kind="lib" path="C:/apache-tomcat-7.0.47/lib/lucene-queryparser-5.5.0.jar"/>
-	<classpathentry kind="lib" path="C:/apache-tomcat-7.0.47/lib/javacv.jar"/>
-	<classpathentry kind="lib" path="C:/apache-tomcat-7.0.47/lib/lucene-analyzers-common-5.5.0.jar"/>
-	<classpathentry kind="lib" path="C:/apache-tomcat-7.0.47/lib/javacpp.jar"/>
-	<classpathentry kind="lib" path="C:/apache-tomcat-7.0.47/lib/servlet-api.jar"/>
-	<classpathentry kind="lib" path="C:/apache-tomcat-7.0.47/lib/commons-fileupload-1.3.2.jar"/>
+	<classpathentry kind="lib" path="lib/servlet-api.jar"/>
+	<classpathentry kind="lib" path="lib/commons-fileupload-1.3.2.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
