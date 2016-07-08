@@ -79,7 +79,6 @@ public class LucImageIndexing {
 		    indexWriter.addDocument(doc);
 		}
 		indexWriter.commit();
-		
 		//commit Lucene
 	}
 	

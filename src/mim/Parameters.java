@@ -1,6 +1,7 @@
 package mim;
 
 import java.io.File;
+import java.util.List;
 
 public class Parameters {
 	
@@ -14,17 +15,25 @@ public class Parameters {
 	public static final int IMG_HEIGHT = 227;
 	
 	//lucene output folder
-	public static final String LUCENE_INDEX_DIRECTORY = "C:\\lucene";
+	public static final String LUCENE_INDEX_DIRECTORY = "C:\\luceneMM";
 	
 	//Image Source Folder
 	public static final File SRC_FOLDER = new File("C:/Users/Sara/workspaceEE/multiModal/data/img");
 	public static final File SRC_FOLDER_TEST = new File("C:/Users/Sara/workspaceEE/multiModal/data/imgFlickr");
+	
+	//Tags folder
+	public static final File TAG_FOLDER =  new File("C:/Users/Sara/workspaceEE/multiModal/data/tags");
 	
 	//Features Storage File
 	//public static final File STORAGE_FILE = new File("data/deep.seq.dat");
 	public static final File STORAGE_FILE = new File("C:/Users/Sara/workspaceEE/multiModal/WebContent/WEB-INF/classes/deep.seq.dat");
 	public static final File STORAGE_FILE_6 = new File("C:/Users/Sara/workspaceEE/multiModal/WebContent/WEB-INF/classes/deep6.dat");
 	public static final File STORAGE_FILE_7 = new File("C:/Users/Sara/workspaceEE/multiModal/WebContent/WEB-INF/classes/deep7.dat");
+	
+	//IDS storage files, separated to avoid overwriting them by mistake
+	public static final File IDS_FILE_7 = new File ("C:/Users/Sara/workspaceEE/multiModal/data/deep7merged.dat");
+	public static final File IDS_FILE_6 = new File ("C:/Users/Sara/workspaceEE/multiModal/data/deep6merged.dat");
+	
 	//k-Nearest Neighbors
 	public static final int K = 30;
 	
@@ -48,5 +57,7 @@ public class Parameters {
 	public static final File RESULTS_HTML = new File("C:/Users/Sara/workspaceEE/multiModal/WebContent/deep.seq.html");
 	public static final File RESULTS_HTML_LUCENE = new File("C:/Users/Sara/workspaceEE/multiModal/out/deep.lucene.html");
 	public static final File RESULTS_HTML_REORDERED = new File("C:/Users/Sara/workspaceEE/multiModal/out/deep.reordered.html");
+	
+	
 
 }
