@@ -8,6 +8,6 @@ public class Fields {
 	
 	public static final String TAGS = "tags";
 	
-	public static final String BINARY = "binary";
+	public static final String CLASSLABEL = "class";
 
 }

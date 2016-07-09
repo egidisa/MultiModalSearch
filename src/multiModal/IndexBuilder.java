@@ -1,12 +1,16 @@
 package multiModal;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Scanner;
+import java.util.stream.Stream;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
@@ -42,8 +46,9 @@ public class IndexBuilder {
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
 		// IndexBuilder index = new IndexBuilder(Parameters.IDS_FILE_7,
 		// Parameters.TAG_FOLDER);
-		IndexBuilder index = new IndexBuilder(new File("data/prova.dat"), Parameters.TAG_FOLDER);
+		IndexBuilder index = new IndexBuilder(new File("data/deepFeatures/deep7.dat"), Parameters.TAG_FOLDER);
 		System.out.println("dataset loaded");
+		
 		index.openIndex(Parameters.LUCENE_INDEX_DIRECTORY);
 		index.createIndex();
 		index.closeIndex();
@@ -52,31 +57,34 @@ public class IndexBuilder {
 	public void createIndex() throws IOException {
 		// index all dataset features and tags into Lucene
 		Document doc = null;
-		String idDoc = "";
-		String pathTagFile = "";
-		String imgTXT = "";
-		String contentTagFile = "";
-		String tags = "";
-
+		BufferedReader br = new BufferedReader(new FileReader(new File("data/classifiedLabels.txt")));
 		for (int i = 0; i < idsDataset.size(); i++) {
-			idDoc = idsDataset.get(i).getId();
-			pathTagFile = Parameters.TAG_FOLDER + "/" + idDoc.replaceAll("im", "tags").replaceAll(".jpg", ".txt");
-
+			String line = br.readLine();
+			String[] tokens = line.split(";");
+			System.out.println("Label"+tokens[2]);
+			
+			String pathTagFile = Parameters.TAG_FOLDER + "/" + idsDataset.get(i).getId().replaceAll("im", "tags").replaceAll(".jpg", ".txt");
+			String classLabel = tokens[2];
 			System.out.println(pathTagFile);
-			imgTXT = DCNNFeaturesQuantization.quantize(idsDataset.get(i));
-
-			contentTagFile = readFile(pathTagFile, Charset.defaultCharset());
-			tags = contentTagFile.replace("\n", " ").replace("\r", " ");
+			String imgTXT = DCNNFeaturesQuantization.quantize(idsDataset.get(i));
+			
+			String content = readFile(pathTagFile,Charset.defaultCharset());
+			String tags = content.replace("\n", " ").replace("\r", " ");
 			System.out.println(tags);
-
-			doc = createDoc(idDoc, imgTXT, tags);
+			
+			doc = createDoc(idsDataset.get(i).getId(), imgTXT, tags, classLabel);
 			indexWriter.addDocument(doc);
-			System.out.println(idDoc + " indexed");
+			System.out.println(idsDataset.get(i).getId() + " indexed");
 
+			/*
+			Stream<String> stream = Files.lines(Paths.get(pathTagFile));
+			stream.forEach(line -> tags += line);
+			System.out.println(tags);*/
 		}
 
-		// commit Lucene
-		indexWriter.commit();
+
+	// commit Lucene
+	indexWriter.commit();
 	}
 
 	public void openIndex(String lucenePath) throws IOException {
@@ -93,11 +101,10 @@ public class IndexBuilder {
 		// close Lucene writer
 		indexWriter.close();
 	}
-
-	private Document createDoc(String fileName, String imgTXT, String tags) throws IOException {
+	
+	private Document createDoc(String fileName, String imgTXT, String tags, String classLabel) throws IOException {
 		Document doc = new Document();
 
-		// TODO CHECK here if options set correctly for all Fields
 		// ID field
 		FieldType ft = new FieldType(StringField.TYPE_STORED);
 		ft.setIndexOptions(IndexOptions.DOCS);
@@ -105,26 +112,38 @@ public class IndexBuilder {
 		doc.add(f);
 
 		// imgTXT field
-		ft = new FieldType(TextField.TYPE_NOT_STORED);
+		ft = new FieldType(TextField.TYPE_STORED);
 		ft.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS);
 		ft.setStoreTermVectors(true);
 		ft.setStoreTermVectorPositions(true);
-		ft.storeTermVectorOffsets();
+		//ft.storeTermVectorOffsets();
 		f = new Field(Fields.IMG, imgTXT, ft);
 		doc.add(f);
 
 		// tags field
-		ft = new FieldType(StringField.TYPE_STORED);
-		ft.setIndexOptions(IndexOptions.DOCS);
+		ft = new FieldType(TextField.TYPE_STORED);
+		ft.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS); 
+	    ft.setStoreTermVectors(true);
+	    ft.setStoreTermVectorPositions(true);
+	    //ft.storeTermVectorOffsets();
 		f = new Field(Fields.TAGS, tags, ft);
+		doc.add(f);
+		
+		// tags field
+		ft = new FieldType(TextField.TYPE_STORED);
+		ft.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS); 
+	    ft.setStoreTermVectors(true);
+	    ft.setStoreTermVectorPositions(true);
+	    //ft.storeTermVectorOffsets();
+		f = new Field(Fields.CLASSLABEL, classLabel, ft);
 		doc.add(f);
 
 		return doc;
 	}
-
-	private String readFile(String path, Charset encoding) throws IOException {
-		byte[] encoded = Files.readAllBytes(Paths.get(path));
-		return new String(encoded, encoding);
-	}
-
+	
+	static String readFile(String path, Charset encoding) throws IOException {
+			  byte[] encoded = Files.readAllBytes(Paths.get(path));
+			  return new String(encoded, encoding);
+			}
+	
 }

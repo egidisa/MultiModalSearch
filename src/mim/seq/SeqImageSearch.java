@@ -108,9 +108,7 @@ public class SeqImageSearch {
 		File img = new File(inputPath);
 		
 		DNNExtractor extractor = new DNNExtractor();
-		//TODO - se l'img è già presente nell'indice non serve ri-estrarre le features - Gennaro
-		
-		//TODO - retrieve img's tags <- the future SIS should do it
+
 		float[] features = extractor.extract(img, Parameters.DEEP_LAYER);
 		ImgDescriptor query = new ImgDescriptor(features, img.getName());
 				
