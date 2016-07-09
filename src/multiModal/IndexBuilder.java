@@ -104,11 +104,11 @@ public class IndexBuilder {
 		doc.add(f);
 
 		// imgTXT field
-		ft = new FieldType(StringField.TYPE_NOT_STORED);
+		ft = new FieldType(TextField.TYPE_STORED);
 		ft.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS);
 		ft.setStoreTermVectors(true);
 		ft.setStoreTermVectorPositions(true);
-		ft.storeTermVectorOffsets();
+		//ft.storeTermVectorOffsets();
 		f = new Field(Fields.IMG, imgTXT, ft);
 		doc.add(f);
 
