@@ -1,10 +1,11 @@
-function show_image(src, width, height, alt) {
-    var img = document.createElement("img");
-    img.src = src;
-    img.width = width;
-    img.height = height;
-    img.alt = alt;
-
-    // This next line will just add it to the <body> tag
-    document.body.appendChild(img);
+function changeImg(min, max) { // create the function for changing the images
+    var noi = max - min; // number of images
+    var numRand = Math.floor(Math.random() * noi) + min; // randomized number
+    $("#banner").find("img").attr('src','pages/gallery/PhotoWall/images/' + ""+ numRand +"" + '.jpg'); // set a new image
 }
+
+$(function() { // Waiting for the DOM ready
+    setInterval(function(){ // create an interval (loop)
+    changeImg(101, 120); // the function with paramteters
+    },1000); // the interval in millisecondes --> 1000 = 1 second
+});

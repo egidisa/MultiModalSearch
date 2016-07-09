@@ -7,8 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Scanner;
-import java.util.stream.Stream;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
@@ -54,29 +52,31 @@ public class IndexBuilder {
 	public void createIndex() throws IOException {
 		// index all dataset features and tags into Lucene
 		Document doc = null;
-		for (int i = 0; i < idsDataset.size(); i++) {
-			String pathTagFile = Parameters.TAG_FOLDER + "/" + idsDataset.get(i).getId().replaceAll("im", "tags").replaceAll(".jpg", ".txt");
-			
-			System.out.println(pathTagFile);
-			String imgTXT = DCNNFeaturesQuantization.quantize(idsDataset.get(i));
-			
-			String content = readFile(pathTagFile,Charset.defaultCharset());
-			String tags = content.replace("\n", " ").replace("\r", " ");
-			System.out.println(tags);
-			
-			doc = createDoc(idsDataset.get(i).getId(), imgTXT, tags);
-			indexWriter.addDocument(doc);
-			System.out.println(idsDataset.get(i).getId() + " indexed");
+		String idDoc = "";
+		String pathTagFile = "";
+		String imgTXT = "";
+		String contentTagFile = "";
+		String tags = "";
 
-			/*
-			Stream<String> stream = Files.lines(Paths.get(pathTagFile));
-			stream.forEach(line -> tags += line);
-			System.out.println(tags);*/
+		for (int i = 0; i < idsDataset.size(); i++) {
+			idDoc = idsDataset.get(i).getId();
+			pathTagFile = Parameters.TAG_FOLDER + "/" + idDoc.replaceAll("im", "tags").replaceAll(".jpg", ".txt");
+
+			System.out.println(pathTagFile);
+			imgTXT = DCNNFeaturesQuantization.quantize(idsDataset.get(i));
+
+			contentTagFile = readFile(pathTagFile, Charset.defaultCharset());
+			tags = contentTagFile.replace("\n", " ").replace("\r", " ");
+			System.out.println(tags);
+
+			doc = createDoc(idDoc, imgTXT, tags);
+			indexWriter.addDocument(doc);
+			System.out.println(idDoc + " indexed");
+
 		}
 
-
-	// commit Lucene
-	indexWriter.commit();
+		// commit Lucene
+		indexWriter.commit();
 	}
 
 	public void openIndex(String lucenePath) throws IOException {
@@ -93,10 +93,11 @@ public class IndexBuilder {
 		// close Lucene writer
 		indexWriter.close();
 	}
-	
+
 	private Document createDoc(String fileName, String imgTXT, String tags) throws IOException {
 		Document doc = new Document();
 
+		// TODO CHECK here if options set correctly for all Fields
 		// ID field
 		FieldType ft = new FieldType(StringField.TYPE_STORED);
 		ft.setIndexOptions(IndexOptions.DOCS);
@@ -120,10 +121,10 @@ public class IndexBuilder {
 
 		return doc;
 	}
-	
-	static String readFile(String path, Charset encoding) throws IOException {
-			  byte[] encoded = Files.readAllBytes(Paths.get(path));
-			  return new String(encoded, encoding);
-			}
-	
+
+	private String readFile(String path, Charset encoding) throws IOException {
+		byte[] encoded = Files.readAllBytes(Paths.get(path));
+		return new String(encoded, encoding);
+	}
+
 }
