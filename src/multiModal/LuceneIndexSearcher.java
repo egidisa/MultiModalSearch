@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -15,6 +17,7 @@ import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
@@ -29,6 +32,7 @@ public class LuceneIndexSearcher {
 	
 	public void search(String text, String uploadedImg, String selectedImg) throws Exception{
 		this.openIndex(Parameters.LUCENE_INDEX_DIRECTORY);
+		IndexEntry result;
 		if (text != null){
 			if (uploadedImg!=null){
 				//multimodal search text + uploadedImg
@@ -78,8 +82,8 @@ public class LuceneIndexSearcher {
 		LuceneIndexSearcher indexSrc = new LuceneIndexSearcher();
 		//indexSrc.openIndex(Parameters.LUCENE_INDEX_DIRECTORY);
 		
-		indexSrc.search(null, "C:/Users/Sara/workspaceEE/multiModal/data/imgFlickr/im24976.jpg", null);
-		//indexSrc.search("sea",null,"im1000.jpg");
+		//indexSrc.search(null, "C:/Users/Sara/workspaceEE/multiModal/data/imgFlickr/im24976.jpg", null);
+		indexSrc.search("sea fun",null,null);
 		
 		//IndexEntry entry = indexSrc.retrieveIndexEntryDetails("im1000.jpg");
 		//indexSrc.searchTextual("sea");
@@ -89,7 +93,7 @@ public class LuceneIndexSearcher {
 	}
 	
 	public void searchTextual(String tagString) throws IOException, ParseException {
-		
+		List<IndexEntry> result = new ArrayList<IndexEntry>();
 		System.out.println("Searching for '" + tagString + "'");
 		
 		QueryParser queryParser = new QueryParser(Fields.TAGS, new WhitespaceAnalyzer());
@@ -97,15 +101,16 @@ public class LuceneIndexSearcher {
 		TopDocs hits = indexSearcher.search(query,Parameters.K);
 		System.out.println("Number of hits: " + hits.totalHits);
 		String[] r = new String[hits.scoreDocs.length];
-
+		ScoreDoc[] filterScoreDosArray = hits.scoreDocs;
 		for (int i = 0; i < hits.scoreDocs.length; i++) {
-			
 			int doc = hits.scoreDocs[i].doc;
 			r[i] = new String((indexSearcher.doc(doc).get(Fields.ID)));
 			System.out.println("Result image: "+r[i]);
 			Explanation x = indexSearcher.explain(query, hits.scoreDocs[i].doc);
 			//System.out.println(x.toString());
-			//res.add(new ImgDescriptor(indexSearcher.doc(doc).get(Fields.BINARY)));
+			//String id, String tags, String imgDesc, String classLabel, String score
+			String score = Float.toString(filterScoreDosArray[i].score);
+			result.add(new IndexEntry(indexSearcher.doc(doc).get(Fields.ID),indexSearcher.doc(doc).get(Fields.TAGS),indexSearcher.doc(doc).get(Fields.IMG),indexSearcher.doc(doc).get(Fields.CLASSLABEL), score));
 		}
 	}
 	

@@ -75,14 +75,7 @@ public class IndexBuilder {
 			doc = createDoc(idsDataset.get(i).getId(), imgTXT, tags, classLabel);
 			indexWriter.addDocument(doc);
 			System.out.println(idsDataset.get(i).getId() + " indexed");
-
-			/*
-			Stream<String> stream = Files.lines(Paths.get(pathTagFile));
-			stream.forEach(line -> tags += line);
-			System.out.println(tags);*/
 		}
-
-
 	// commit Lucene
 	indexWriter.commit();
 	}

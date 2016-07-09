@@ -5,6 +5,7 @@ public class IndexEntry {
     public String tags;
     public String imgDesc;
     public String classLabel;
+    public String score;
 
     public IndexEntry(String id, String tags, String imgDesc, String classLabel) {
     	this.id = id;
@@ -12,5 +13,12 @@ public class IndexEntry {
     	this.imgDesc = imgDesc;
         this.classLabel = classLabel;
     }
-
+    
+    public IndexEntry(String id, String tags, String imgDesc, String classLabel, String score) {
+    	this.id = id;
+    	this.tags = tags;
+    	this.imgDesc = imgDesc;
+        this.classLabel = classLabel;
+        this.score = score;
+    }
 }
