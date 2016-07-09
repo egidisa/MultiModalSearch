@@ -104,7 +104,7 @@ public class IndexBuilder {
 		doc.add(f);
 
 		// imgTXT field
-		ft = new FieldType(TextField.TYPE_NOT_STORED);
+		ft = new FieldType(StringField.TYPE_NOT_STORED);
 		ft.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS);
 		ft.setStoreTermVectors(true);
 		ft.setStoreTermVectorPositions(true);
@@ -113,8 +113,11 @@ public class IndexBuilder {
 		doc.add(f);
 
 		// tags field
-		ft = new FieldType(StringField.TYPE_STORED);
-		ft.setIndexOptions(IndexOptions.DOCS);
+		ft = new FieldType(TextField.TYPE_STORED);
+		ft.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS); 
+	    ft.setStoreTermVectors(true);
+	    ft.setStoreTermVectorPositions(true);
+	    //ft.storeTermVectorOffsets();
 		f = new Field(Fields.TAGS, tags, ft);
 		doc.add(f);
 
