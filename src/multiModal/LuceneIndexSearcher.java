@@ -30,7 +30,8 @@ import mim.lucene.Fields;
 public class LuceneIndexSearcher {
 	private IndexSearcher indexSearcher;
 	
-	public void search(String text, String uploadedImg, String selectedImg) throws Exception{
+	public List<IndexEntry> search(String text, String uploadedImg, String selectedImg) throws Exception{
+		List<IndexEntry> res = new ArrayList<IndexEntry>();
 		this.openIndex(Parameters.LUCENE_INDEX_DIRECTORY);
 		IndexEntry result;
 		if (text != null){
@@ -41,20 +42,20 @@ public class LuceneIndexSearcher {
 				Descriptors descResult = FeaturesExtractor.extractFeaturesSingle(img);
 				ImgDescriptor deep7 = new ImgDescriptor(descResult.featDesc7,img.getName());
 				String imgTXT7 = DCNNFeaturesQuantization.quantize(deep7);
-				this.searchMulti(imgTXT7,text);				
+				res = this.searchMulti(imgTXT7,text);				
 			}
 			if (selectedImg!=null){
 				//multimodal search text + selectedImg
 				System.out.println("multimodal text+selectedimg");
 				//retrieve img info
 				IndexEntry entry = this.retrieveIndexEntryDetails(selectedImg);
-				this.searchMulti(entry.imgDesc,text);
+				res = this.searchMulti(entry.imgDesc,text);
 				
 			}
 			if (uploadedImg == null && selectedImg == null){
 				//textual search
 				System.out.println("textual");
-				this.searchTextual(text);
+				res = this.searchTextual(text);
 			}
 		} else {
 			if (uploadedImg!=null){
@@ -66,16 +67,16 @@ public class LuceneIndexSearcher {
 				String imgTXT7 = DCNNFeaturesQuantization.quantize(deep7);
 				//ImgDescriptor deep6 = new ImgDescriptor(descResult.featDesc7,img.getName());
 				//String imgTXT6 = DCNNFeaturesQuantization.quantize(deep6);
-				this.searchVisual(imgTXT7);
+				res = this.searchVisual(imgTXT7);
 			}
 			if (selectedImg!=null){
 				//visual search with selectedImg
 				System.out.println("visual search with selectedImg");
 				IndexEntry entry = this.retrieveIndexEntryDetails(selectedImg);
-				this.searchVisual(entry.imgDesc);
-				
+				res = this.searchVisual(entry.imgDesc);
 			}
 		}
+		return res;
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -92,7 +93,7 @@ public class LuceneIndexSearcher {
 
 	}
 	
-	public void searchTextual(String tagString) throws IOException, ParseException {
+	private List<IndexEntry> searchTextual(String tagString) throws IOException, ParseException {
 		List<IndexEntry> result = new ArrayList<IndexEntry>();
 		System.out.println("Searching for '" + tagString + "'");
 		
@@ -112,36 +113,40 @@ public class LuceneIndexSearcher {
 			String score = Float.toString(filterScoreDosArray[i].score);
 			result.add(new IndexEntry(indexSearcher.doc(doc).get(Fields.ID),indexSearcher.doc(doc).get(Fields.TAGS),indexSearcher.doc(doc).get(Fields.IMG),indexSearcher.doc(doc).get(Fields.CLASSLABEL), score));
 		}
+		return result;
 	}
 	
-	public void searchVisual(String imgString) throws IOException, ParseException {
+	private List<IndexEntry> searchVisual(String imgString) throws IOException, ParseException {
+		List<IndexEntry> result = new ArrayList<IndexEntry>();
 		System.out.println("Searching for '" + imgString + "'");
 		QueryParser queryParser = new QueryParser(Fields.IMG, new WhitespaceAnalyzer());
 		Query query = queryParser.parse(imgString);
 		TopDocs hits = indexSearcher.search(query,Parameters.K);
 		System.out.println("Number of hits: " + hits.totalHits);
 		String[] r = new String[hits.scoreDocs.length];
-
+		ScoreDoc[] filterScoreDosArray = hits.scoreDocs;
 		for (int i = 0; i < hits.scoreDocs.length; i++) {
-			
 			int doc = hits.scoreDocs[i].doc;
 			r[i] = new String((indexSearcher.doc(doc).get(Fields.ID)));
 			System.out.println("Result image: "+r[i]);
 			Explanation x = indexSearcher.explain(query, hits.scoreDocs[i].doc);
 			//System.out.println(x.toString());
 			//res.add(new ImgDescriptor(indexSearcher.doc(doc).get(Fields.BINARY)));
+			String score = Float.toString(filterScoreDosArray[i].score);
+			result.add(new IndexEntry(indexSearcher.doc(doc).get(Fields.ID),indexSearcher.doc(doc).get(Fields.TAGS),indexSearcher.doc(doc).get(Fields.IMG),indexSearcher.doc(doc).get(Fields.CLASSLABEL), score));
 		}
+		return result;
 	}
 	
-	public void searchMulti(String imgString, String tagString) throws IOException, ParseException {
-		
+	private List<IndexEntry> searchMulti(String imgString, String tagString) throws IOException, ParseException {
+		List<IndexEntry> result = new ArrayList<IndexEntry>();
 		Query query = MultiFieldQueryParser.parse(new String[] {imgString,tagString},   new String[] {Fields.IMG,Fields.TAGS},new WhitespaceAnalyzer());
 		System.out.println("Searching for '" + query.toString() + "'");
 
 		TopDocs hits = indexSearcher.search(query,Parameters.K);
 		System.out.println("Number of hits: " + hits.totalHits);
 		String[] r = new String[hits.scoreDocs.length];
-
+		ScoreDoc[] filterScoreDosArray = hits.scoreDocs;
 		for (int i = 0; i < hits.scoreDocs.length; i++) {
 			
 			int doc = hits.scoreDocs[i].doc;
@@ -150,7 +155,11 @@ public class LuceneIndexSearcher {
 			Explanation x = indexSearcher.explain(query, hits.scoreDocs[i].doc);
 			//System.out.println(x.toString());
 			//res.add(new ImgDescriptor(indexSearcher.doc(doc).get(Fields.BINARY)));
+			String score = Float.toString(filterScoreDosArray[i].score);
+			result.add(new IndexEntry(indexSearcher.doc(doc).get(Fields.ID),indexSearcher.doc(doc).get(Fields.TAGS),indexSearcher.doc(doc).get(Fields.IMG),indexSearcher.doc(doc).get(Fields.CLASSLABEL), score));
+		
 		}
+		return result;
 	}
 	
 	public IndexEntry retrieveIndexEntryDetails(String imgName) throws IOException, ParseException{
@@ -171,10 +180,7 @@ public class LuceneIndexSearcher {
 		return result;
 	}
 	
-	
-	
-	
-	public void openIndex(String lucenePath) throws IOException {	
+	private void openIndex(String lucenePath) throws IOException {	
 		//Initialize Lucene stuff
 		Path absolutePath = Paths.get(lucenePath, "");
 		FSDirectory index = FSDirectory.open(absolutePath);
