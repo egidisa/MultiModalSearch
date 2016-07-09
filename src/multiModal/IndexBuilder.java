@@ -1,6 +1,8 @@
 package multiModal;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -46,6 +48,7 @@ public class IndexBuilder {
 		// Parameters.TAG_FOLDER);
 		IndexBuilder index = new IndexBuilder(new File("data/deepFeatures/deep7.dat"), Parameters.TAG_FOLDER);
 		System.out.println("dataset loaded");
+		
 		index.openIndex(Parameters.LUCENE_INDEX_DIRECTORY);
 		index.createIndex();
 		index.closeIndex();
@@ -54,9 +57,14 @@ public class IndexBuilder {
 	public void createIndex() throws IOException {
 		// index all dataset features and tags into Lucene
 		Document doc = null;
+		BufferedReader br = new BufferedReader(new FileReader(new File("data/classifiedLabels.txt")));
 		for (int i = 0; i < idsDataset.size(); i++) {
-			String pathTagFile = Parameters.TAG_FOLDER + "/" + idsDataset.get(i).getId().replaceAll("im", "tags").replaceAll(".jpg", ".txt");
+			String line = br.readLine();
+			String[] tokens = line.split(";");
+			System.out.println("Label"+tokens[2]);
 			
+			String pathTagFile = Parameters.TAG_FOLDER + "/" + idsDataset.get(i).getId().replaceAll("im", "tags").replaceAll(".jpg", ".txt");
+			String classLabel = tokens[2];
 			System.out.println(pathTagFile);
 			String imgTXT = DCNNFeaturesQuantization.quantize(idsDataset.get(i));
 			
@@ -64,7 +72,7 @@ public class IndexBuilder {
 			String tags = content.replace("\n", " ").replace("\r", " ");
 			System.out.println(tags);
 			
-			doc = createDoc(idsDataset.get(i).getId(), imgTXT, tags);
+			doc = createDoc(idsDataset.get(i).getId(), imgTXT, tags, classLabel);
 			indexWriter.addDocument(doc);
 			System.out.println(idsDataset.get(i).getId() + " indexed");
 
@@ -94,7 +102,7 @@ public class IndexBuilder {
 		indexWriter.close();
 	}
 	
-	private Document createDoc(String fileName, String imgTXT, String tags) throws IOException {
+	private Document createDoc(String fileName, String imgTXT, String tags, String classLabel) throws IOException {
 		Document doc = new Document();
 
 		// ID field
@@ -119,6 +127,15 @@ public class IndexBuilder {
 	    ft.setStoreTermVectorPositions(true);
 	    //ft.storeTermVectorOffsets();
 		f = new Field(Fields.TAGS, tags, ft);
+		doc.add(f);
+		
+		// tags field
+		ft = new FieldType(TextField.TYPE_STORED);
+		ft.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS); 
+	    ft.setStoreTermVectors(true);
+	    ft.setStoreTermVectorPositions(true);
+	    //ft.storeTermVectorOffsets();
+		f = new Field(Fields.CLASSLABEL, classLabel, ft);
 		doc.add(f);
 
 		return doc;
