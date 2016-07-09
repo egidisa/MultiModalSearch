@@ -44,7 +44,7 @@ public class IndexBuilder {
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
 		// IndexBuilder index = new IndexBuilder(Parameters.IDS_FILE_7,
 		// Parameters.TAG_FOLDER);
-		IndexBuilder index = new IndexBuilder(new File("data/prova.dat"), Parameters.TAG_FOLDER);
+		IndexBuilder index = new IndexBuilder(new File("data/deepFeatures/deep7.dat"), Parameters.TAG_FOLDER);
 		System.out.println("dataset loaded");
 		index.openIndex(Parameters.LUCENE_INDEX_DIRECTORY);
 		index.createIndex();

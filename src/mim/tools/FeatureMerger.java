@@ -12,18 +12,18 @@ public class FeatureMerger {
 	private List<mim.ImgDescriptor> descriptors4;
 	private List<mim.ImgDescriptor> descriptors5;
 	
-	public static final File PART_1 = new File("data/deep6_1.dat");
-	public static final File PART_2 = new File("data/deep6_2.dat");
-	public static final File PART_3 = new File("data/deep6_3.dat");
-	public static final File PART_4 = new File("data/deep6_4.dat");
-	public static final File PART_5 = new File("data/deep6_5.dat");
+	public static final File PART_1 = new File("data/ids7/deep71.dat");
+	public static final File PART_2 = new File("data/ids7/deep72.dat");
+	public static final File PART_3 = new File("data/ids7/deep73.dat");
+	public static final File PART_4 = new File("data/ids7/deep74.dat");
+	public static final File PART_5 = new File("data/ids7/deep75.dat");
 	
-	public static final File MERGED = new File("data/deepFeatures/deep6.dat");
+	public static final File MERGED = new File("data/deepFeatures/deep7.dat");
 	
 	public static void main(String[] args) throws Exception {
 		FeatureMerger merger = new FeatureMerger();
 		merger.open(PART_1,PART_2, PART_3,PART_4, PART_5);
-		System.out.println("Opened both!");
+		System.out.println("Opened all!");
 		merger.merge();		
 		System.out.println("Saved merged file");
 	}
