@@ -127,4 +127,9 @@ public class DNNLabelExtractor {
 		Descriptors descResult = new Descriptors(features6,features,classLabelProb);
 		return descResult;
 	}
+
+	public Descriptors extractPath(File img, String deepLayer) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

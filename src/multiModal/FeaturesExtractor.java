@@ -55,4 +55,17 @@ public class FeaturesExtractor {
 		// FeaturesStorage.store(descs7, Parameters.STORAGE_FILE_7);
 		writer.close();
 	}
+	// extract features given a file
+	static Descriptors extractFeaturesSingle(File img) throws Exception {
+		//File img = new File(imgPath);
+
+		DNNLabelExtractor extractor = new DNNLabelExtractor();
+		System.out.println("Extracting " + img.getAbsolutePath());
+		long time = -System.currentTimeMillis();
+		Descriptors descriptor = extractor.extract(img, Parameters.DEEP_LAYER);
+		time += System.currentTimeMillis();
+		System.out.println(time);
+		return descriptor;
+		}
+	
 }
