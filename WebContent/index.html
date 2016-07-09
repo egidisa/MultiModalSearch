@@ -4,57 +4,52 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Multi Modal Search</title>
 <link rel="stylesheet" type="text/css" href="view.css" media="all" />
+
+	<script type="text/javascript" src="randomImg.js"></script>
 </head>
 <body id="main_body">
 	<div id="form_container">
-		<h1>Multi Modal Search</h1>
-	
-		<form id="form_1142927" class="mimMultiModalImageSearch"
+		
+			<form id="form_1142927" class="mimMultiModalImageSearch"
 			enctype="multipart/form-data" method="post"
 			action="MultiModalImageSearch">
 			<div class="form_description">
 				<h2>Multi Modal Search</h2>
+				<div class="authors">
+				Proudly brought to you by <br />Sara Egidi<br />Fabio Greco<br />Alessio Villardita<br />
+				<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Licenza Creative Commons" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a>
+				</div>
 				<ul>
 					<li id="li_1">
 						<div>
-							<label class="description" for="element_2">Name</label>
-							<input id="element_2" name="element_2" class="text"
+							<label class="description" for="tagsInput">Text Query</label>
+							<input id="tagsInput" name="tags" class="text"
 								type="text" />
 						</div>
 						<div>
-							<label class="description" for="element_1">Upload your image</label>
-							<input id="element_1" name="element_1" type="file" />
+							<label class="description" for="fileUploadInput">Upload your image</label>
+							<input id="fileUploadInput" name="fileUpload" type="file" />
 						</div>
-					</li>
-					<li class="buttons">
+							<input type="hidden" id="selectedImageInput" name="selectedImage"
+						value="-1" />
+					
+			
+			<label class="description">or Select a picture below</label> 
+			<img id="top" src="media/imgWeb/top.png" alt="">
+			<div id="boxRandomPictures">
+				<script type="text/javascript">getRandomImage();</script>
+			</div>
+		</li>
+				</ul>
+			<img id="bottom" src="media/imgWeb/bottom.png" onclick="" alt="">
+			<div align="center">
 						<input type="hidden" name="form_id"
 						value="1142927" />
 						<input id="saveForm" class="button_text"
-						type="submit" name="submit" value="Submit" />
-					</li>
-				</ul>
+						type="submit" name="submit" value="Search" />
+			</div>
 			</div>
 		</form>
 	</div>
-	
-	
-	<img id="top" src="top.png" alt="">
-	
-	<script type="text/javascript" src="randomImg.js">
-		var img = document.createElement("img");
-		img.src = 'http://idata.over-blog.com/0/02/84/60/aaaa1/equidow/equideow.gif';
-		img.width = 398;
-		img.height = 328;
-
-		// This next line will just add it to the <body> tag
-		document.body.appendChild(img);
-	</script>
-	<script type="text/javascript" src="randomImg.js">
-		show_image(
-				'http://idata.over-blog.com/0/02/84/60/aaaa1/equidow/equideow.gif',
-				398, 328, 'Google Logo');
-	</script>
-
-	<img id="bottom" src="bottom.png" alt="">
 </body>
 </html>

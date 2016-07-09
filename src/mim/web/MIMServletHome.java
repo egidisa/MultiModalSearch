@@ -64,8 +64,13 @@ public class MIMServletHome extends HttpServlet {
 		// initialize PrinterWriter
 		PrintWriter out = response.getWriter();  
 		// retrieve filename
-		final Part filePart = request.getPart("element_1");
+		final Part filePart = request.getPart("fileUpload");
 		String filePath = getFileName(filePart);
+		System.out.println("FILE_INPUT = " + filePath);
+		
+		System.out.println("TAGS_INPUT = " + request.getParameter("tags"));
+		System.out.println("SELECTED_IMAGE = " + request.getParameter("selectedImage"));
+		
 		File file = new File(filePath);
 		String fileName = file.getName(); 
 		
