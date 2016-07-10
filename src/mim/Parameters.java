@@ -11,15 +11,18 @@ public class Parameters {
 	public static final String DEEP_MEAN_IMG = "C:/Users/Sara/workspaceEE/multiModal/data/caffe/meanImage.png";
 	
 	public static final String DEEP_LAYER = "fc7";
+	public static final int DEEP_LAYER6 = 6;
+	public static final int DEEP_LAYER7 = 7;
+	
 	public static final int IMG_WIDTH = 227;
 	public static final int IMG_HEIGHT = 227;
 	
 	//lucene output folder
-	public static final String LUCENE_INDEX_DIRECTORY = "C:\\luceneMM";
+	public static final String LUCENE_INDEX_DIRECTORY = "WebContent/data/index";
 	
 	//Image Source Folder
 	public static final File SRC_FOLDER = new File("C:/Users/Sara/workspaceEE/multiModal/data/img");
-	public static final File SRC_FOLDER_TEST = new File("C:/Users/Sara/workspaceEE/multiModal/data/imgFlickr");
+	public static final File SRC_FOLDER_TEST = new File("C:/Users/Sara/workspaceEE/multiModal/WebContent/data/imgFlickr");
 	
 	//Tags folder
 	public static final File TAG_FOLDER =  new File("C:/Users/Sara/workspaceEE/multiModal/data/tags");
@@ -35,7 +38,7 @@ public class Parameters {
 	public static final File IDS_FILE_6 = new File ("C:/Users/Sara/workspaceEE/multiModal/data/deep6merged.dat");
 	
 	//k-Nearest Neighbors
-	public static final int K = 30;
+	public static final int K = 40;
 	
 	//Pivots File
 	public static final File  PIVOTS_FILE = new File("C:/Users/Sara/workspaceEE/multiModal/out/deep.pivots.dat");
@@ -52,9 +55,15 @@ public class Parameters {
 	//Lucene Index
 	public static final String  LUCENE_PATH = "C:/Users/Sara/workspaceEE/multiModal/out/"  + "Lucene_Deep";
 	
-	//HTML Output Parameters
-	public static final  String BASE_URI = "file:///" + Parameters.SRC_FOLDER.getAbsolutePath() + "/";
-	public static final File RESULTS_HTML = new File("C:/Users/Sara/workspaceEE/multiModal/WebContent/deep.seq.html");
+	//Server workspace for uploaded images
+	public static final  String SERVER_WORKSPACE = "C:/Users/Sara/workspaceEE/multiModal/WebContent/work/uploadedImages";
+	
+	//HTML Output Parameters 
+	public static final  String BASE_URIOLD = "file:///" + Parameters.SRC_FOLDER_TEST.getAbsolutePath() + "/";
+	public static final  String BASE_URI = "data/imgFlickr/";
+	public static final File RESULTS_HTML = new File("C:/Users/Sara/workspaceEE/multiModal/WebContent/multimodal.html");
+	public static final File RESULTS_HTML6 = new File("C:/Users/Sara/workspaceEE/multiModal/WebContent/multimodal6.html");
+	public static final File RESULTS_HTML7 = new File("C:/Users/Sara/workspaceEE/multiModal/WebContent/multimodal7.html");
 	public static final File RESULTS_HTML_LUCENE = new File("C:/Users/Sara/workspaceEE/multiModal/out/deep.lucene.html");
 	public static final File RESULTS_HTML_REORDERED = new File("C:/Users/Sara/workspaceEE/multiModal/out/deep.reordered.html");
 	

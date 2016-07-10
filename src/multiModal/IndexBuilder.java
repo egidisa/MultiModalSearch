@@ -76,7 +76,7 @@ public class IndexBuilder {
 			System.out.println(pathTagFile);
 			String imgTXT = DCNNFeaturesQuantization.quantize(idsDataset.get(i));
 			String imgTXT6 = DCNNFeaturesQuantization.quantize(idsDataset6.get(i));
-			String content = readFile(pathTagFile,Charset.defaultCharset());
+			String content = readFile(pathTagFile,Charset.defaultCharset());//StandardCharsets.UTF_8
 			String tags = content.replace("\n", " ").replace("\r", " ");
 			System.out.println(tags);
 			

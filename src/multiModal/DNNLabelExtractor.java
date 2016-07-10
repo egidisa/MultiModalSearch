@@ -57,13 +57,14 @@ public class DNNLabelExtractor {
 	}
 
 	public Descriptors extract(File image, String layer) {
-		Mat img = imread(image.getAbsolutePath(), CV_LOAD_IMAGE_UNCHANGED);
+		Mat img = imread(image.getPath(), CV_LOAD_IMAGE_UNCHANGED);
+		System.out.println(image.getPath());
 		return extract(img, layer);
 	}
 
 	//reads class names from file
 	public static List<String> readClassNames() {
-        String filename = "data/synset_words.txt";
+        String filename = "C:/Users/Sara/workspaceEE/multiModal/WebContent/data/synset_words.txt";
         List<String> classNames = null;
 
         try (BufferedReader br = new BufferedReader(new FileReader(new File(filename)))) {
