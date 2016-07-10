@@ -32,28 +32,36 @@ import mim.lucene.Fields;
 import mim.tools.FeaturesStorage;
 
 //Class to create index on deep features and tags and store it in C:/lucene
+/***
+ * Class that handles the creation of the index. It indexes both tags and deep features
+ * @author Sara
+ *
+ */
 public class IndexBuilder {
 
 	private List<ImgDescriptor> idsDataset;
+	private List<ImgDescriptor> idsDataset6;
 	private IndexWriter indexWriter;
-	// private File[] tagFiles;
 
-	public IndexBuilder(File idsFile, File tagFolder) throws ClassNotFoundException, IOException {
+	public IndexBuilder(File idsFile, File idsFile6, File tagFolder) throws ClassNotFoundException, IOException {
 		this.idsDataset = FeaturesStorage.load(idsFile);
-		// tagFiles = tagFolder.listFiles();
+		this.idsDataset6 = FeaturesStorage.load(idsFile6);
 	}
 
+	//Actually build the index
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
-		// IndexBuilder index = new IndexBuilder(Parameters.IDS_FILE_7,
-		// Parameters.TAG_FOLDER);
-		IndexBuilder index = new IndexBuilder(new File("data/deepFeatures/deep7.dat"), Parameters.TAG_FOLDER);
-		System.out.println("dataset loaded");
+		IndexBuilder index = new IndexBuilder(new File("data/deepFeatures/deep7.dat"), new File("data/deepFeatures/deep6.dat"), Parameters.TAG_FOLDER);
+		System.out.println("datasets loaded");
 		
 		index.openIndex(Parameters.LUCENE_INDEX_DIRECTORY);
 		index.createIndex();
 		index.closeIndex();
 	}
 
+	/***
+	 * Method that creates the index, it iterates through all the images and creates a document for each of them
+	 * @throws IOException
+	 */
 	public void createIndex() throws IOException {
 		// index all dataset features and tags into Lucene
 		Document doc = null;
@@ -67,12 +75,12 @@ public class IndexBuilder {
 			String classLabel = tokens[2];
 			System.out.println(pathTagFile);
 			String imgTXT = DCNNFeaturesQuantization.quantize(idsDataset.get(i));
-			
+			String imgTXT6 = DCNNFeaturesQuantization.quantize(idsDataset6.get(i));
 			String content = readFile(pathTagFile,Charset.defaultCharset());
 			String tags = content.replace("\n", " ").replace("\r", " ");
 			System.out.println(tags);
 			
-			doc = createDoc(idsDataset.get(i).getId(), imgTXT, tags, classLabel);
+			doc = createDoc(idsDataset.get(i).getId(), imgTXT, imgTXT6, tags, classLabel);
 			indexWriter.addDocument(doc);
 			System.out.println(idsDataset.get(i).getId() + " indexed");
 		}
@@ -80,6 +88,11 @@ public class IndexBuilder {
 	indexWriter.commit();
 	}
 
+	/***
+	 * Opens the index to be stored
+	 * @param lucenePath
+	 * @throws IOException
+	 */
 	public void openIndex(String lucenePath) throws IOException {
 		// from ex1
 		Path absolutePath = Paths.get(lucenePath, "");
@@ -95,7 +108,16 @@ public class IndexBuilder {
 		indexWriter.close();
 	}
 	
-	private Document createDoc(String fileName, String imgTXT, String tags, String classLabel) throws IOException {
+	/***
+	 * Creates the single document to be added to the index
+	 * @param fileName The filename of the image, will be indexed as the ID
+	 * @param imgTXT quantised deep features of the seventh layer
+	 * @param tags Tags separated by spaces
+	 * @param classLabel classified label
+	 * @return Document to be indexed
+	 * @throws IOException
+	 */
+	private Document createDoc(String fileName, String imgTXT, String imgTXT6, String tags, String classLabel) throws IOException {
 		Document doc = new Document();
 
 		// ID field
@@ -111,6 +133,15 @@ public class IndexBuilder {
 		ft.setStoreTermVectorPositions(true);
 		//ft.storeTermVectorOffsets();
 		f = new Field(Fields.IMG, imgTXT, ft);
+		doc.add(f);
+		
+		// imgTXT6 field
+		ft = new FieldType(TextField.TYPE_STORED);
+		ft.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS);
+		ft.setStoreTermVectors(true);
+		ft.setStoreTermVectorPositions(true);
+		//ft.storeTermVectorOffsets();
+		f = new Field(Fields.IMG6, imgTXT6, ft);
 		doc.add(f);
 
 		// tags field

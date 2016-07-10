@@ -26,6 +26,7 @@ import mim.ImgDescriptor;
 import mim.Parameters;
 import mim.lucene.DCNNFeaturesQuantization;
 import mim.lucene.Fields;
+import mim.tools.Output;
 /***
  * Class to perform a search on the index. The query is received directly from a servlet, and it consists
  * of 3 fields. The search may either be done by having a textual query, a visual one (an image) or even both
@@ -33,12 +34,22 @@ import mim.lucene.Fields;
  *
  */
 public class LuceneIndexSearcher {
+	
 	private IndexSearcher indexSearcher;
 	
+	/***
+	 * 
+	 * @param text input text for the query
+	 * @param uploadedImg image not stored, visual features will be extracted
+	 * @param selectedImg image already stored, features will be retrieved from the index
+	 * @return a list of IndexEntry containing result information including the score
+	 * @throws Exception
+	 */
 	public List<IndexEntry> search(String text, String uploadedImg, String selectedImg) throws Exception{
+		
 		List<IndexEntry> res = new ArrayList<IndexEntry>();
 		this.openIndex(Parameters.LUCENE_INDEX_DIRECTORY);
-		IndexEntry result;
+
 		if (text != null){
 			if (uploadedImg!=null){
 				//multimodal search text + uploadedImg
@@ -47,6 +58,9 @@ public class LuceneIndexSearcher {
 				Descriptors descResult = FeaturesExtractor.extractFeaturesSingle(img);
 				ImgDescriptor deep7 = new ImgDescriptor(descResult.featDesc7,img.getName());
 				String imgTXT7 = DCNNFeaturesQuantization.quantize(deep7);
+				//TODO
+				//ImgDescriptor deep6 = new ImgDescriptor(descResult.featDesc6,img.getName());
+				//String imgTXT6 = DCNNFeaturesQuantization.quantize(deep6);
 				res = this.searchMulti(imgTXT7,text);				
 			}
 			if (selectedImg!=null){
@@ -55,7 +69,6 @@ public class LuceneIndexSearcher {
 				//retrieve img info
 				IndexEntry entry = this.retrieveIndexEntryDetails(selectedImg);
 				res = this.searchMulti(entry.getImgDesc(),text);
-				
 			}
 			if (uploadedImg == null && selectedImg == null){
 				//textual search
@@ -70,7 +83,8 @@ public class LuceneIndexSearcher {
 				Descriptors descResult = FeaturesExtractor.extractFeaturesSingle(img);
 				ImgDescriptor deep7 = new ImgDescriptor(descResult.featDesc7,img.getName());
 				String imgTXT7 = DCNNFeaturesQuantization.quantize(deep7);
-				//ImgDescriptor deep6 = new ImgDescriptor(descResult.featDesc7,img.getName());
+				//TODO
+				//ImgDescriptor deep6 = new ImgDescriptor(descResult.featDesc6,img.getName());
 				//String imgTXT6 = DCNNFeaturesQuantization.quantize(deep6);
 				res = this.searchVisual(imgTXT7);
 			}
@@ -81,15 +95,17 @@ public class LuceneIndexSearcher {
 				res = this.searchVisual(entry.getImgDesc());
 			}
 		}
+		Output.searchResultsToHTML(res,Parameters.BASE_URI, Parameters.RESULTS_HTML);
 		return res;
 	}
 
+	//just for testing purposes
 	public static void main(String[] args) throws Exception {
 		LuceneIndexSearcher indexSrc = new LuceneIndexSearcher();
 		//indexSrc.openIndex(Parameters.LUCENE_INDEX_DIRECTORY);
 		
 		//indexSrc.search(null, "C:/Users/Sara/workspaceEE/multiModal/data/imgFlickr/im24976.jpg", null);
-		List<IndexEntry> res = indexSrc.search("sea fun",null,null);
+		List<IndexEntry> res = indexSrc.search(null,null,"im5185.jpg");
 		System.out.println(res.get(0).getId());
 		
 		//IndexEntry entry = indexSrc.retrieveIndexEntryDetails("im1000.jpg");
@@ -99,6 +115,13 @@ public class LuceneIndexSearcher {
 
 	}
 	
+	/***
+	 * Performs a textual search on the index
+	 * @param tagString textual query
+	 * @return returns a list on IndexEntry objects containing the first k results together with their score
+	 * @throws IOException
+	 * @throws ParseException
+	 */
 	private List<IndexEntry> searchTextual(String tagString) throws IOException, ParseException {
 		List<IndexEntry> result = new ArrayList<IndexEntry>();
 		System.out.println("Searching for '" + tagString + "'");
@@ -113,15 +136,19 @@ public class LuceneIndexSearcher {
 			int doc = hits.scoreDocs[i].doc;
 			r[i] = new String((indexSearcher.doc(doc).get(Fields.ID)));
 			System.out.println("Result image: "+r[i]);
-			Explanation x = indexSearcher.explain(query, hits.scoreDocs[i].doc);
-			//System.out.println(x.toString());
-			//String id, String tags, String imgDesc, String classLabel, String score
 			String score = Float.toString(filterScoreDosArray[i].score);
 			result.add(new IndexEntry(indexSearcher.doc(doc).get(Fields.ID),indexSearcher.doc(doc).get(Fields.TAGS),indexSearcher.doc(doc).get(Fields.IMG),indexSearcher.doc(doc).get(Fields.CLASSLABEL), score));
 		}
 		return result;
 	}
 	
+	/***
+	 * Performs a visual search on the index
+	 * @param imgString input visual feature (already quantised)
+	 * @return returns a list on IndexEntry objects containing the first k results together with their score
+	 * @throws IOException
+	 * @throws ParseException
+	 */
 	private List<IndexEntry> searchVisual(String imgString) throws IOException, ParseException {
 		List<IndexEntry> result = new ArrayList<IndexEntry>();
 		System.out.println("Searching for '" + imgString + "'");
@@ -136,8 +163,6 @@ public class LuceneIndexSearcher {
 			r[i] = new String((indexSearcher.doc(doc).get(Fields.ID)));
 			System.out.println("Result image: "+r[i]);
 			Explanation x = indexSearcher.explain(query, hits.scoreDocs[i].doc);
-			//System.out.println(x.toString());
-			//res.add(new ImgDescriptor(indexSearcher.doc(doc).get(Fields.BINARY)));
 			String score = Float.toString(filterScoreDosArray[i].score);
 			result.add(new IndexEntry(indexSearcher.doc(doc).get(Fields.ID),indexSearcher.doc(doc).get(Fields.TAGS),indexSearcher.doc(doc).get(Fields.IMG),indexSearcher.doc(doc).get(Fields.CLASSLABEL), score));
 		}
@@ -154,20 +179,21 @@ public class LuceneIndexSearcher {
 	 */
 	private List<IndexEntry> searchMulti(String imgString, String tagString) throws IOException, ParseException {
 		List<IndexEntry> result = new ArrayList<IndexEntry>();
+		//prepare the query
 		Query query = MultiFieldQueryParser.parse(new String[] {imgString,tagString},   new String[] {Fields.IMG,Fields.TAGS},new WhitespaceAnalyzer());
 		System.out.println("Searching for '" + query.toString() + "'");
-
+		//perform search
 		TopDocs hits = indexSearcher.search(query,Parameters.K);
 		System.out.println("Number of hits: " + hits.totalHits);
 		String[] r = new String[hits.scoreDocs.length];
 		ScoreDoc[] filterScoreDosArray = hits.scoreDocs;
 		for (int i = 0; i < hits.scoreDocs.length; i++) {
-			
+			//fetch score
 			int doc = hits.scoreDocs[i].doc;
 			r[i] = new String((indexSearcher.doc(doc).get(Fields.ID)));
 			System.out.println("Result image: "+r[i]);
-
 			String score = Float.toString(filterScoreDosArray[i].score);
+			//add the result to the list
 			result.add(new IndexEntry(indexSearcher.doc(doc).get(Fields.ID),indexSearcher.doc(doc).get(Fields.TAGS),indexSearcher.doc(doc).get(Fields.IMG),indexSearcher.doc(doc).get(Fields.CLASSLABEL), score));
 		
 		}

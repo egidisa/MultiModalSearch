@@ -24,8 +24,8 @@ public class FeaturesExtractor {
 		// indexing.extractFeatures(Parameters.SRC_FOLDER_TEST);
 
 		// store descriptors in data/deep.dat
-		// FeaturesStorage.store(descriptors6, Parameters.STORAGE_FILE_6);
-		// FeaturesStorage.store(descriptors, Parameters.STORAGE_FILE_7);
+		//FeaturesStorage.store(descriptors6, Parameters.STORAGE_FILE_6);
+		//FeaturesStorage.store(descriptors, Parameters.STORAGE_FILE_7);
 
 	}
 
@@ -51,14 +51,18 @@ public class FeaturesExtractor {
 			// files[i].getName()));
 			writer.println(files[i].getName() + ";" + descriptors.classLabel);
 		}
-		// FeaturesStorage.store(descs6, Parameters.STORAGE_FILE_6);
-		// FeaturesStorage.store(descs7, Parameters.STORAGE_FILE_7);
+		//FeaturesStorage.store(descs6, Parameters.STORAGE_FILE_6);
+		//FeaturesStorage.store(descs7, Parameters.STORAGE_FILE_7);
 		writer.close();
 	}
-	// extract features given a file
+	
+	/***
+	 * Extracts visual features from both levels 6 and 7, given a image file
+	 * @param img
+	 * @return
+	 * @throws Exception
+	 */
 	static Descriptors extractFeaturesSingle(File img) throws Exception {
-		//File img = new File(imgPath);
-
 		DNNLabelExtractor extractor = new DNNLabelExtractor();
 		System.out.println("Extracting " + img.getAbsolutePath());
 		long time = -System.currentTimeMillis();
