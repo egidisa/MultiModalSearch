@@ -26,7 +26,12 @@ import mim.ImgDescriptor;
 import mim.Parameters;
 import mim.lucene.DCNNFeaturesQuantization;
 import mim.lucene.Fields;
-
+/***
+ * Class to perform a search on the index. The query is received directly from a servlet, and it consists
+ * of 3 fields. The search may either be done by having a textual query, a visual one (an image) or even both
+ * @author Sara
+ *
+ */
 public class LuceneIndexSearcher {
 	private IndexSearcher indexSearcher;
 	
@@ -49,7 +54,7 @@ public class LuceneIndexSearcher {
 				System.out.println("multimodal text+selectedimg");
 				//retrieve img info
 				IndexEntry entry = this.retrieveIndexEntryDetails(selectedImg);
-				res = this.searchMulti(entry.imgDesc,text);
+				res = this.searchMulti(entry.getImgDesc(),text);
 				
 			}
 			if (uploadedImg == null && selectedImg == null){
@@ -73,7 +78,7 @@ public class LuceneIndexSearcher {
 				//visual search with selectedImg
 				System.out.println("visual search with selectedImg");
 				IndexEntry entry = this.retrieveIndexEntryDetails(selectedImg);
-				res = this.searchVisual(entry.imgDesc);
+				res = this.searchVisual(entry.getImgDesc());
 			}
 		}
 		return res;
@@ -84,7 +89,8 @@ public class LuceneIndexSearcher {
 		//indexSrc.openIndex(Parameters.LUCENE_INDEX_DIRECTORY);
 		
 		//indexSrc.search(null, "C:/Users/Sara/workspaceEE/multiModal/data/imgFlickr/im24976.jpg", null);
-		indexSrc.search("sea fun",null,null);
+		List<IndexEntry> res = indexSrc.search("sea fun",null,null);
+		System.out.println(res.get(0).getId());
 		
 		//IndexEntry entry = indexSrc.retrieveIndexEntryDetails("im1000.jpg");
 		//indexSrc.searchTextual("sea");
@@ -138,6 +144,14 @@ public class LuceneIndexSearcher {
 		return result;
 	}
 	
+	/***
+	 * Performs a multi-field search on the index
+	 * @param imgString input visual feature (already quantised)
+	 * @param tagString textual query
+	 * @return returns a list on IndexEntry objects containing the first k results together with their score
+	 * @throws IOException
+	 * @throws ParseException
+	 */
 	private List<IndexEntry> searchMulti(String imgString, String tagString) throws IOException, ParseException {
 		List<IndexEntry> result = new ArrayList<IndexEntry>();
 		Query query = MultiFieldQueryParser.parse(new String[] {imgString,tagString},   new String[] {Fields.IMG,Fields.TAGS},new WhitespaceAnalyzer());
@@ -152,9 +166,7 @@ public class LuceneIndexSearcher {
 			int doc = hits.scoreDocs[i].doc;
 			r[i] = new String((indexSearcher.doc(doc).get(Fields.ID)));
 			System.out.println("Result image: "+r[i]);
-			Explanation x = indexSearcher.explain(query, hits.scoreDocs[i].doc);
-			//System.out.println(x.toString());
-			//res.add(new ImgDescriptor(indexSearcher.doc(doc).get(Fields.BINARY)));
+
 			String score = Float.toString(filterScoreDosArray[i].score);
 			result.add(new IndexEntry(indexSearcher.doc(doc).get(Fields.ID),indexSearcher.doc(doc).get(Fields.TAGS),indexSearcher.doc(doc).get(Fields.IMG),indexSearcher.doc(doc).get(Fields.CLASSLABEL), score));
 		
@@ -162,26 +174,40 @@ public class LuceneIndexSearcher {
 		return result;
 	}
 	
+	/***
+	 * Retrieves the index entry for a given image name. Used to avoid extracting the visual features when 
+	 * the image is already present in the index.
+	 * @param imgName name of the image (with extension)
+	 * @return returns a IndexEntry object containing all the fields fetched in the index
+	 * @throws IOException
+	 * @throws ParseException
+	 */
 	public IndexEntry retrieveIndexEntryDetails(String imgName) throws IOException, ParseException{
 		System.out.println("Retriving '" + imgName + "' index entry");
+		
 		QueryParser queryParser = new QueryParser(Fields.ID, new WhitespaceAnalyzer());
 		Query query = queryParser.parse(imgName);
 		TopDocs hits = indexSearcher.search(query,1);
-		//System.out.println("Number of hits: " + hits.totalHits);
-		String[] r = new String[hits.scoreDocs.length];
 		int doc = hits.scoreDocs[0].doc;
-		r[0] = new String((indexSearcher.doc(doc).get(Fields.ID)));
+		
 		String id = new String((indexSearcher.doc(doc).get(Fields.ID)));
 		String tags = new String((indexSearcher.doc(doc).get(Fields.TAGS)));
 		String imgDesc = new String((indexSearcher.doc(doc).get(Fields.IMG)));
 		String classLabel = new String((indexSearcher.doc(doc).get(Fields.CLASSLABEL)));
-		System.out.println("Found imgName: "+id+" tags: "+tags+" img: "+imgDesc+" class: "+classLabel);
 		IndexEntry result = new IndexEntry(imgName,tags,imgDesc,classLabel);
+		
+		System.out.println("Found imgName: "+id+" tags: "+tags+" img: "+imgDesc+" class: "+classLabel);
+		
 		return result;
 	}
 	
+	/***
+	 * Opens the Lucene index, given the index path
+	 * @param lucenePath String containing the path to the index
+	 * @throws IOException
+	 */
 	private void openIndex(String lucenePath) throws IOException {	
-		//Initialize Lucene stuff
+		//Initialize Lucene index
 		Path absolutePath = Paths.get(lucenePath, "");
 		FSDirectory index = FSDirectory.open(absolutePath);
 		DirectoryReader ir = DirectoryReader.open(index);
