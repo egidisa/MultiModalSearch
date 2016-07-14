@@ -15,6 +15,8 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
@@ -22,6 +24,7 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.Version;
 
 import mim.ImgDescriptor;
 import mim.Parameters;
@@ -81,9 +84,9 @@ public class LuceneIndexSearcher {
 				// retrieve img info
 				IndexEntry entry = this.retrieveIndexEntryDetails(selectedImg);
 				if (deepLayer == Parameters.DEEP_LAYER7)
-					res = this.searchVisual(entry.getImgDesc(), deepLayer);
+					res = this.searchMulti(entry.getImgDesc(),text, deepLayer);
 				else if (deepLayer == Parameters.DEEP_LAYER6)
-					res = this.searchVisual(entry.getImgDesc6(), deepLayer);
+					res = this.searchMulti(entry.getImgDesc6(),text, deepLayer);
 			}
 			if (uploadedImg == null && selectedImg == null) {
 				// textual search
@@ -242,6 +245,37 @@ public class LuceneIndexSearcher {
 	}
 
 	/***
+	 * Performs a textual search on the index
+	 * 
+	 * @param tagString
+	 *            textual query
+	 * @return returns a list on IndexEntry objects containing the first k
+	 *         results together with their score
+	 * @throws IOException
+	 * @throws ParseException
+	 */
+	private List<IndexEntry> searchTextual(String tagString, int k) throws IOException, ParseException {
+		List<IndexEntry> result = new ArrayList<IndexEntry>();
+		System.out.println("Searching for '" + tagString + "'");
+
+		QueryParser queryParser = new QueryParser(Fields.TAGS, new WhitespaceAnalyzer());
+		Query query = queryParser.parse(tagString);
+		TopDocs hits = indexSearcher.search(query, k);
+		System.out.println("Number of hits: " + hits.totalHits);
+		String[] r = new String[hits.scoreDocs.length];
+		ScoreDoc[] filterScoreDosArray = hits.scoreDocs;
+		for (int i = 0; i < hits.scoreDocs.length; i++) {
+			int doc = hits.scoreDocs[i].doc;
+			r[i] = new String((indexSearcher.doc(doc).get(Fields.ID)));
+			System.out.println("Result image: " + r[i]);
+			String score = Float.toString(filterScoreDosArray[i].score);
+			result.add(new IndexEntry(indexSearcher.doc(doc).get(Fields.ID), indexSearcher.doc(doc).get(Fields.TAGS),
+					indexSearcher.doc(doc).get(Fields.IMG6), indexSearcher.doc(doc).get(Fields.CLASSLABEL), score));
+		}
+		return result;
+	}
+	
+	/***
 	 * Performs a visual search on the index
 	 * 
 	 * @param imgString
@@ -281,6 +315,45 @@ public class LuceneIndexSearcher {
 	}
 
 	/***
+	 * Performs a visual search on the index
+	 * 
+	 * @param imgString
+	 *            input visual feature (already quantised)
+	 * @return returns a list on IndexEntry objects containing the first k
+	 *         results together with their score
+	 * @throws IOException
+	 * @throws ParseException
+	 */
+	private List<IndexEntry> searchVisual(String imgString, int deepLayer, int k) throws IOException, ParseException {
+		List<IndexEntry> result = new ArrayList<IndexEntry>();
+		QueryParser queryParser = null;
+
+		System.out.println("Searching for '" + imgString + "'");
+
+		if (deepLayer == Parameters.DEEP_LAYER7)
+			queryParser = new QueryParser(Fields.IMG, new WhitespaceAnalyzer());
+		else if (deepLayer == Parameters.DEEP_LAYER6)
+			queryParser = new QueryParser(Fields.IMG6, new WhitespaceAnalyzer());
+
+		Query query = queryParser.parse(imgString);
+		TopDocs hits = indexSearcher.search(query, k);
+		System.out.println("Number of hits: " + hits.totalHits);
+		String[] r = new String[hits.scoreDocs.length];
+		ScoreDoc[] filterScoreDosArray = hits.scoreDocs;
+		for (int i = 0; i < hits.scoreDocs.length; i++) {
+			int doc = hits.scoreDocs[i].doc;
+			r[i] = new String((indexSearcher.doc(doc).get(Fields.ID)));
+			System.out.println("Result image: " + r[i]);
+			Explanation x = indexSearcher.explain(query, hits.scoreDocs[i].doc);
+			String score = Float.toString(filterScoreDosArray[i].score);
+			result.add(new IndexEntry(indexSearcher.doc(doc).get(Fields.ID), indexSearcher.doc(doc).get(Fields.TAGS),
+					indexSearcher.doc(doc).get(Fields.IMG), indexSearcher.doc(doc).get(Fields.IMG6),
+					indexSearcher.doc(doc).get(Fields.CLASSLABEL), score));
+		}
+		return result;
+	}
+	
+	/***
 	 * Performs a multi-field search on the index
 	 * 
 	 * @param imgString
@@ -296,14 +369,19 @@ public class LuceneIndexSearcher {
 			throws IOException, ParseException {
 		List<IndexEntry> result = new ArrayList<IndexEntry>();
 		Query query = null;
+		BooleanClause.Occur[] flags = new BooleanClause.Occur[2];
+        
+        flags[0] = BooleanClause.Occur.SHOULD;
+        flags[1] = BooleanClause.Occur.MUST;
+        
 		// prepare the query
 		if (deepLayer == Parameters.DEEP_LAYER7)
 			query = MultiFieldQueryParser.parse(new String[] { imgString, tagString },
-					new String[] { Fields.IMG, Fields.TAGS }, new WhitespaceAnalyzer());
+					new String[] { Fields.IMG, Fields.TAGS }, flags, new WhitespaceAnalyzer());
 		else if (deepLayer == Parameters.DEEP_LAYER6)
 			query = MultiFieldQueryParser.parse(new String[] { imgString, tagString },
-					new String[] { Fields.IMG6, Fields.TAGS }, new WhitespaceAnalyzer());
-
+					new String[] { Fields.IMG6, Fields.TAGS }, flags, new WhitespaceAnalyzer());
+		
 		System.out.println("Searching for '" + query.toString() + "'");
 		// perform search
 		TopDocs hits = indexSearcher.search(query, Parameters.K);
@@ -322,6 +400,83 @@ public class LuceneIndexSearcher {
 					indexSearcher.doc(doc).get(Fields.CLASSLABEL), score));
 		}
 		return result;
+	}
+	
+	//TODO provare Q a 100
+	//TODO field img e poi filtrare su tag
+	
+	private List<IndexEntry> searchMultiBoolQuery(String imgString, String tagString, int deepLayer)
+			throws IOException, ParseException {
+		List<IndexEntry> result = new ArrayList<IndexEntry>();
+		Query query = null;
+		// prepare the query
+		if (deepLayer == Parameters.DEEP_LAYER7){
+			String[] fields={Fields.IMG,Fields.TAGS};
+			MultiFieldQueryParser queryParser = new MultiFieldQueryParser(fields, new WhitespaceAnalyzer());
+			queryParser.setDefaultOperator(QueryParser.Operator.AND);
+			query = queryParser.parse("+"+Fields.IMG+":" + imgString + "+" + Fields.TAGS + ":" + tagString);
+		}
+		else if (deepLayer == Parameters.DEEP_LAYER6){
+			String[] fields={Fields.IMG6,Fields.TAGS};
+			MultiFieldQueryParser queryParser = new MultiFieldQueryParser(fields, new WhitespaceAnalyzer());
+			queryParser.setDefaultOperator(QueryParser.Operator.AND);
+			query = queryParser.parse("+"+Fields.IMG6+":" + imgString + "+" + Fields.TAGS + ":" + tagString);
+		}
+		System.out.println("Searching for '" + query.toString() + "'");
+		// perform search
+		TopDocs hits = indexSearcher.search(query, Parameters.K);
+		System.out.println("Number of hits: " + hits.totalHits);
+		String[] r = new String[hits.scoreDocs.length];
+		ScoreDoc[] filterScoreDosArray = hits.scoreDocs;
+		for (int i = 0; i < hits.scoreDocs.length; i++) {
+			// fetch score
+			int doc = hits.scoreDocs[i].doc;
+			r[i] = new String((indexSearcher.doc(doc).get(Fields.ID)));
+			System.out.println("Result image: " + r[i]);
+			String score = Float.toString(filterScoreDosArray[i].score);
+			// add the result to the list
+			result.add(new IndexEntry(indexSearcher.doc(doc).get(Fields.ID), indexSearcher.doc(doc).get(Fields.TAGS),
+					indexSearcher.doc(doc).get(Fields.IMG), indexSearcher.doc(doc).get(Fields.IMG6),
+					indexSearcher.doc(doc).get(Fields.CLASSLABEL), score));
+		}
+		return result;
+	}
+	
+	private List<IndexEntry> searchMultiAZero(String imgString, String tagString, int deepLayer) throws IOException, ParseException{
+		List<IndexEntry> res = new ArrayList<IndexEntry>();
+		//call searchvisual, call searchtext, until common entries == k	
+		int commonEntries = 0;
+		int i=0;
+		while(commonEntries<30){
+			i+=5;
+			commonEntries = 0;
+			System.out.println("-----------------RES SIZE: "+res.size()+" -----------------");
+			List<IndexEntry> resVis = searchVisual(imgString,deepLayer, Parameters.K+i);
+			List<IndexEntry> resTxt = searchTextual(tagString, Parameters.K+i);
+			if (resVis.size() <= resTxt.size()){
+				for (IndexEntry ie : resVis){
+					for (IndexEntry ie2 : resTxt){
+						if (ie.getId() == ie2.getId()) {
+							commonEntries++;
+							if (!res.contains(ie)) res.add(ie);
+						}
+					}
+				}
+				System.out.println("-----------------commonEntries1: "+commonEntries+" -----------------");
+			}
+			else if (resVis.size() > resTxt.size()){
+				for (IndexEntry ie : resTxt){
+					for (IndexEntry ie2 : resVis){
+						if (ie.getId() == ie2.getId()) {
+							commonEntries++;
+							if (!res.contains(ie))  res.add(ie);
+						}
+					}
+				}
+				System.out.println("-----------------commonEntries2: "+commonEntries+" -----------------");
+			}
+		}
+		return res;
 	}
 
 	/***
