@@ -59,7 +59,8 @@ public class LuceneIndexSearcher {
 	 */
 	public List<IndexEntry> search(String text, String uploadedImg, String selectedImg, int deepLayer)
 			throws Exception {
-
+		//needed for high values of Q, which increase the size of the quanised visual features (more non zero terms and more repetition)
+		BooleanQuery.setMaxClauseCount(20000);
 		List<IndexEntry> res = new ArrayList<IndexEntry>();
 		this.openIndex(Parameters.LUCENE_INDEX_DIRECTORY);
 
@@ -336,6 +337,7 @@ public class LuceneIndexSearcher {
 			queryParser = new QueryParser(Fields.IMG6, new WhitespaceAnalyzer());
 
 		Query query = queryParser.parse(imgString);
+		
 		TopDocs hits = indexSearcher.search(query, k);
 		System.out.println("Number of hits: " + hits.totalHits);
 		String[] r = new String[hits.scoreDocs.length];
@@ -372,7 +374,7 @@ public class LuceneIndexSearcher {
 		BooleanClause.Occur[] flags = new BooleanClause.Occur[2];
         
         flags[0] = BooleanClause.Occur.SHOULD;
-        flags[1] = BooleanClause.Occur.MUST;
+        flags[1] = BooleanClause.Occur.SHOULD;
         
 		// prepare the query
 		if (deepLayer == Parameters.DEEP_LAYER7)

@@ -6,7 +6,7 @@ import mim.ImgDescriptor;
 
 public class DCNNFeaturesQuantization {
 
-	private static float Q = 30.0f;
+	private static float Q = 100.0f;
 
 	public static String quantize(ImgDescriptor iDesc) {
 		float[] features = iDesc.getFeatures();
